@@ -44,6 +44,6 @@ public class ClientIndex {
 
     public String getAssetDownloadURL(String path){
         String hash = getAssetsIndexJsonObject().get(path).getAsJsonObject().get("hash").getAsString();
-        return Constants.ASSET_URL + "/" + hash.substring(0,2) + "/" + hash;
+        return Constants.ASSET_URL + hash.substring(0,2) + "/" + hash;
     }
 }

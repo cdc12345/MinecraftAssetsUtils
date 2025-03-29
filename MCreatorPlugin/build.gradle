@@ -36,7 +36,7 @@ dependencies {
 }
 
 tasks.jar {
-    archiveFileName.set("datalists.zip")
+    archiveFileName.set("readable-"+version+".zip")
 
     from {
         configurations.export.collect { it.isDirectory() ? it : zipTree(it) }

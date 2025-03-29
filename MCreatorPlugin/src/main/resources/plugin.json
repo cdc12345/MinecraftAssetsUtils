@@ -1,0 +1,15 @@
+{
+  "id": "assets",
+  "supportedversions": [
+    202500199999,
+    2025001
+  ],
+  "weight": 0,
+  "javaplugin": "org.cdc.assets.PluginMain",
+  "info": {
+    "name": "MCreator Assets Utils",
+    "version": "1.0",
+    "description": "Demo Java plugin to demonstrate a typical Java plugin structure",
+    "author": "cdc123"
+  }
+}

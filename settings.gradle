@@ -1,0 +1,6 @@
+rootProject.name = 'MinecraftAssetsUtils'
+include 'MCreatorPlugin'
+
+include ":MCreator"
+project(":MCreator").projectDir = file(mcreator_path)
+

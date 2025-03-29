@@ -3,6 +3,7 @@ package org.cdc.assets;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.mcreator.generator.GeneratorWrapper;
+import net.mcreator.io.UserFolderManager;
 import net.mcreator.minecraft.DataListEntry;
 import net.mcreator.minecraft.DataListLoader;
 import net.mcreator.plugin.JavaPlugin;
@@ -71,10 +72,17 @@ public class PluginMain extends JavaPlugin {
         String name = locale.getLanguage() + "_" + locale.getCountry().toLowerCase();
 
         var url = new URL(versionManifest.getSpecificVersion(version).getClient().getAssetDownloadURL("minecraft/lang/" + name + ".json"));
-        var cache = new File("lang", "cache" + name + ".json");
+        var cache = new File(UserFolderManager.getFileFromUserFolder("cache"), "cache" + name + ".json");
         cache.getParentFile().mkdirs();
         try {
-            FileUtils.copyURLToFile(url, cache, 10_000, 5_000);
+            long ms = System.currentTimeMillis() - cache.lastModified();
+            LOG.info("{} : {}", cache.getName(), ms);
+            if (ms > 60000) {
+                if (cache.exists()) {
+                    cache.delete();
+                }
+                FileUtils.copyURLToFile(url, cache, 10_000, 5_000);
+            }
         } catch (IOException e) {
             LOG.error(e);
             var input = PluginLoader.INSTANCE.getResources(Pattern.compile(cache.getName()));

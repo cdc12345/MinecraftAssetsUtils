@@ -9,6 +9,7 @@ import net.mcreator.plugin.JavaPlugin;
 import net.mcreator.plugin.Plugin;
 import net.mcreator.plugin.events.workspace.MCreatorLoadedEvent;
 import net.mcreator.preferences.PreferencesManager;
+import net.mcreator.ui.init.L10N;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,6 +39,9 @@ public class PluginMain extends JavaPlugin {
             String register = "null";
             try {
                 JsonObject jsonObject = downloadAssets(a.getMCreator().getGenerator().getGeneratorMinecraftVersion());
+                if (jsonObject == null){
+                    return;
+                }
                 var ca = DataListLoader.loadDataList("blocksitems");
                 var cam = new GeneratorWrapper(a.getMCreator().getGenerator());
                 for (DataListEntry entry:ca){
@@ -56,11 +60,22 @@ public class PluginMain extends JavaPlugin {
 
     private JsonObject downloadAssets(String version) throws IOException {
         var locale = PreferencesManager.PREFERENCES.ui.language.get();
+        if (locale == L10N.DEFAULT_LOCALE){
+            return null;
+        }
         String name = locale.getLanguage() + "_" +locale.getCountry().toLowerCase();
 
         var url = new URL(versionManifest.getSpecificVersion(version).getClient().getAssetDownloadURL("minecraft/lang/"+name+".json"));
-        var cache = new File("cache");
-        FileUtils.copyURLToFile(url,cache,10_000, 5_000);
-        return new Gson().fromJson(new FileReader(cache), JsonObject.class);
+        var cache = new File("lang","cache"+name);
+        cache.getParentFile().mkdirs();
+        try {
+            FileUtils.copyURLToFile(url, cache, 10_000, 5_000);
+        } catch (IOException ignored){
+        }
+        if (cache.exists()) {
+            return new Gson().fromJson(new FileReader(cache), JsonObject.class);
+        } else {
+            return null;
+        }
     }
 }

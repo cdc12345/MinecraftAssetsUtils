@@ -77,7 +77,7 @@ public class PluginMain extends JavaPlugin {
         try {
             long ms = System.currentTimeMillis() - cache.lastModified();
             LOG.info("{} : {}", cache.getName(), ms);
-            if (ms > 60000) {
+            if (ms > 360000) {
                 if (cache.exists()) {
                     cache.delete();
                 }

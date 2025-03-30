@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
 public class PluginMain extends JavaPlugin {
     private final Logger LOG = LogManager.getLogger(PluginMain.class);
 

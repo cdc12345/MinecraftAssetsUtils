@@ -27,15 +27,14 @@ import java.util.regex.Pattern;
 public class PluginMain extends JavaPlugin {
     private final Logger LOG = LogManager.getLogger(PluginMain.class);
 
-    private final VersionManifest versionManifest;
+    private VersionManifest versionManifest = null;
 
     public PluginMain(Plugin plugin) {
         super(plugin);
 
         try {
             this.versionManifest = new VersionManifest();
-        } catch (URISyntaxException | IOException e) {
-            throw new RuntimeException(e);
+        } catch (URISyntaxException | IOException ignored) {
         }
 
         this.addListener(MCreatorLoadedEvent.class, a -> {
@@ -69,6 +68,10 @@ public class PluginMain extends JavaPlugin {
             return null;
         }
         String name = locale.getLanguage() + "_" + locale.getCountry().toLowerCase();
+
+        if (versionManifest == null){
+            return null;
+        }
 
         var url = new URL(versionManifest.getSpecificVersion(version).getClient().getAssetDownloadURL("minecraft/lang/" + name + ".json"));
         var cache = new File(UserFolderManager.getFileFromUserFolder("cache"), "cache" + name + ".json");

@@ -68,39 +68,38 @@ public class PluginMain extends JavaPlugin {
             return null;
         }
         String name = locale.getLanguage() + "_" + locale.getCountry().toLowerCase();
+        LOG.info(name);
 
-        if (versionManifest == null){
-            return null;
-        }
-
-        var url = new URL(versionManifest.getSpecificVersion(version).getClient().getAssetDownloadURL("minecraft/lang/" + name + ".json"));
         var cache = new File(UserFolderManager.getFileFromUserFolder("cache"), "cache" + name + ".json");
-        cache.getParentFile().mkdirs();
-        try {
-            long ms = System.currentTimeMillis() - cache.lastModified();
-            LOG.info("{} : {}", cache.getName(), ms);
-            if (ms > 360000) {
-                if (cache.exists()) {
-                    cache.delete();
+        if (versionManifest != null) {
+            var url = new URL(versionManifest.getSpecificVersion(version).getClient().getAssetDownloadURL("minecraft/lang/" + name + ".json"));
+            cache.getParentFile().mkdirs();
+            try {
+                long ms = System.currentTimeMillis() - cache.lastModified();
+                LOG.info("{} : {}", cache.getName(), ms);
+                if (ms > 360000) {
+                    if (cache.exists()) {
+                        cache.delete();
+                    }
+                    FileUtils.copyURLToFile(url, cache, 10_000, 5_000);
                 }
-                FileUtils.copyURLToFile(url, cache, 10_000, 5_000);
+            } catch (IOException e) {
+                LOG.error(e);
+                var input = PluginLoader.INSTANCE.getResources(Pattern.compile(cache.getName()));
+                input.forEach(a -> {
+                    try {
+                        FileUtils.copyURLToFile(Objects.requireNonNull(PluginLoader.INSTANCE.getResource(a)), cache);
+                    } catch (IOException ignored) {
+                    }
+                });
             }
-        } catch (IOException e) {
-            LOG.error(e);
-            var input = PluginLoader.INSTANCE.getResources(Pattern.compile(cache.getName()));
-            input.forEach(a -> {
-                try {
-                    FileUtils.copyURLToFile(Objects.requireNonNull(PluginLoader.INSTANCE.getResource(a)), cache);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            });
         }
 
 
         if (cache.exists()) {
             return new Gson().fromJson(new FileReader(cache), JsonObject.class);
         } else {
+            LOG.info(cache);
             return null;
         }
     }

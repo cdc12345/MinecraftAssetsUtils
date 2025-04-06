@@ -1,4 +1,4 @@
-import groovy.json.JsonSlurper
+import java.text.SimpleDateFormat
 
 plugins {
     id "java"
@@ -11,7 +11,7 @@ repositories {
 }
 
 group = 'org.cdc'
-version = "1.0"
+version = new SimpleDateFormat("1.MM").format(new Date())
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 

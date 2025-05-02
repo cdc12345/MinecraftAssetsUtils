@@ -53,7 +53,7 @@ tasks.register('runMCreatorWithPlugin', JavaExec) {
 
     classpath = project(':MCreator').sourceSets.main.runtimeClasspath
 
-    main = 'net.mcreator.Launcher'
+    main 'net.mcreator.Launcher'
 
     workingDir = mcreator_path
 }

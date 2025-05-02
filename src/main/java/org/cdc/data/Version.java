@@ -16,6 +16,8 @@ public class Version implements IVersionInformationProvider,Cloneable{
     private String url;
     @SerializedName("sha1")
     private String sha1;
+    @SerializedName("complianceLevel")
+    private int complianceLevel;
 
     private ClientIndex clientIndex;
 
@@ -51,6 +53,10 @@ public class Version implements IVersionInformationProvider,Cloneable{
             clientIndex = new ClientIndex(this);
         }
         return clientIndex;
+    }
+
+    public int getComplianceLevel() {
+        return complianceLevel;
     }
 
     @Override

@@ -3,7 +3,7 @@ package org.cdc.data;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.cdc.Constants;
-import org.cdc.utils.URLWrapperUtils;
+import org.cdc.utils.URLUtils;
 
 import java.net.URI;
 
@@ -21,13 +21,13 @@ public class ClientIndex implements IVersionInformationProvider{
         try {
             this.id = version.getId();
             this.type = version.getType();
-            client = gson.fromJson(new String(URLWrapperUtils.wrapURI(new URI(version.getUrl())).getInputStream().readAllBytes()), JsonObject.class);
+            client = gson.fromJson(new String(URLUtils.wrapURI(new URI(version.getUrl())).getInputStream().readAllBytes()), JsonObject.class);
 
             var assetIndexS = client.get("assetIndex").getAsJsonObject();
             assetIndex = assetIndexS.get("id").getAsInt();
             String assetsIndexUrl = assetIndexS.getAsJsonObject().get("url").getAsString();
 
-            assetsIndexJsonObject = gson.fromJson(new String(URLWrapperUtils.wrapURI(new URI(assetsIndexUrl)).getInputStream().readAllBytes()), JsonObject.class).get("objects").getAsJsonObject();
+            assetsIndexJsonObject = gson.fromJson(new String(URLUtils.wrapURI(new URI(assetsIndexUrl)).getInputStream().readAllBytes()), JsonObject.class).get("objects").getAsJsonObject();
 
         } catch (Exception e){
             throw new RuntimeException(e);

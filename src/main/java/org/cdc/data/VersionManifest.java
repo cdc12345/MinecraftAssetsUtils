@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.cdc.Constants;
-import org.cdc.utils.URLWrapperUtils;
+import org.cdc.utils.URLUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,7 +24,7 @@ public class VersionManifest {
         URI manifest = new URI(Constants.VERSIONS_MANIFEST_URL);
 
         var gson = new GsonBuilder().create();
-        original = gson.fromJson(new String(URLWrapperUtils.wrapURI(manifest).getInputStream().readAllBytes()),JsonObject.class);
+        original = gson.fromJson(new String(URLUtils.wrapURI(manifest).getInputStream().readAllBytes()),JsonObject.class);
         var latest = original.get("latest").getAsJsonObject();
         latestSnapshot = latest.get("snapshot").getAsString();
         latestStable = latest.get("release").getAsString();

@@ -1,5 +1,7 @@
 package org.cdc.utils;
 
+import net.mcreator.preferences.PreferencesManager;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLConnection;

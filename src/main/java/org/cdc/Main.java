@@ -1,7 +1,7 @@
 package org.cdc;
 
 import org.cdc.data.VersionManifest;
-import org.cdc.utils.URLWrapperUtils;
+import org.cdc.utils.URLUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,12 +26,12 @@ public class Main {
         System.out.println(versionManifest.getLatestStableVersion().getClient().getAssetIndex());
 
         var locale = Locale.getDefault();
-        String name = locale.getLanguage() + "_" +locale.getCountry().toLowerCase();
+        String name = locale.toString().toLowerCase(Locale.ROOT);
 
         System.out.println(name);
 
-        Files.copy(URLWrapperUtils.wrapURI(new URI(versionManifest.getLatestStableVersion().getClient().getAssetDownloadURL("minecraft/lang/"+name+".json"))).getInputStream(), Path.of("cache"), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(URLUtils.wrapURI(new URI(versionManifest.getLatestStableVersion().getClient().getAssetDownloadURL("minecraft/lang/"+name+".json"))).getInputStream(), Path.of("cache"), StandardCopyOption.REPLACE_EXISTING);
 
-        System.out.println(versionManifest.getLatestStableVersion().getClient().getAssetDownloadURL("minecraft/lang/"+name+".json"));
+        System.out.println(URLUtils.getLanguageURL(locale,versionManifest.getLatestStableVersion().getClient()));
     }
 }

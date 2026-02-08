@@ -30,4 +30,16 @@ public class StringUtils {
 	private static boolean isSingleMode(){
 		return PluginMain.isSingleLanguageMode();
 	}
+
+
+	public static Map.Entry<String,String> getNamespaceAndPath(String full){
+		if (!full.contains(":")){
+			return new AbstractMap.SimpleEntry<>("minecraft",full);
+		}
+		if (full.charAt(0)=='#'){
+			full = full.substring(1);
+		}
+		var array = full.split(":");
+		return new AbstractMap.SimpleEntry<>(array[0],array[1]);
+	}
 }

@@ -10,8 +10,8 @@
   "weight": 0,
   "javaplugin": "org.cdc.assets.PluginMain",
   "info": {
-    "name": "MCreator Assets Utils",
-    "version": "1.0",
+    "name": "DataListReadable",
+    "version": "2026.01",
     "description": "DataList Readable to localization",
     "author": "cdc123"
   }

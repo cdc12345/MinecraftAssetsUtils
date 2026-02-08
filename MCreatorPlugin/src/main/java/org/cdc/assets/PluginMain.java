@@ -1,7 +1,9 @@
 package org.cdc.assets;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonReader;
 import net.mcreator.generator.GeneratorWrapper;
 import net.mcreator.io.UserFolderManager;
 import net.mcreator.minecraft.DataListEntry;
@@ -14,10 +16,12 @@ import net.mcreator.plugin.events.WorkspaceSelectorLoadedEvent;
 import net.mcreator.plugin.events.workspace.MCreatorLoadedEvent;
 import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.preferences.entries.BooleanEntry;
+import net.mcreator.ui.MCreator;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdc.data.VersionManifest;
+import org.cdc.utils.L10N;
 import org.cdc.utils.StringUtils;
 
 import javax.swing.*;
@@ -27,9 +31,16 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
+
+import static org.cdc.api.TranslatorAPI.translate;
 
 public class PluginMain extends JavaPlugin {
 	private final Logger LOG = LogManager.getLogger(PluginMain.class);
@@ -59,166 +70,22 @@ public class PluginMain extends JavaPlugin {
 				return;
 			}
 			SwingUtilities.invokeLater(() -> {
-				String mappings = "null";
-				String register = "null";
 				try {
-					JsonObject languageFile = downloadAssets(
+					var languageFileSource = downloadAssets(
 							a.getMCreator().getGenerator().getGeneratorMinecraftVersion());
-					if (languageFile == null) {
+					if (languageFileSource == null) {
 						LOG.info("Lang file failed");
 						return;
 					}
-					mappings = "blocksitems";
-					var ca = DataListLoader.loadDataList("blocksitems");
-					var generatorWrapper = new GeneratorWrapper(a.getMCreator().getGenerator());
-					for (DataListEntry entry : ca) {
-						register = generatorWrapper.map(entry.getName(), "blocksitems", 1);
-						if (languageFile.has("item.minecraft." + register))
-							entry.setReadableName(StringUtils.getReadableName(
-									languageFile.get("item.minecraft." + register).getAsString(),
-									entry.getReadableName(), true));
-						else if (languageFile.has("block.minecraft." + register))
-							entry.setReadableName(StringUtils.getReadableName(
-									languageFile.get("block.minecraft." + register).getAsString(),
-									entry.getReadableName(), true));
-					}
-
-					mappings = "entities";
-					var entites = DataListLoader.loadDataList("entities");
-					for (DataListEntry entry : entites) {
-						register = generatorWrapper.map(entry.getName(), "entities", 2);
-						if (register.equals("zombie") && !entry.getName().equals("EntityZombie")) {
-							continue;
-						}
-						var key = "entity.minecraft." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
-
-					mappings = "biomes";
-					var biomes = DataListLoader.loadDataList("biomes");
-					for (DataListEntry entry : biomes) {
-						register = generatorWrapper.map(entry.getName(), "biomes");
-						if (register.equals("plains") && !entry.getName().equals("plains")) {
-							continue;
-						}
-						var key = "biome.minecraft." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
-
-					mappings = "enchantments";
-					var enchantments = DataListLoader.loadDataList(mappings);
-					for (DataListEntry entry : enchantments) {
-						register = generatorWrapper.map(entry.getName(), mappings, 1).toLowerCase();
-						if (register.equals("efficiency") && !entry.getName().equals("EFFICIENCY")) {
-							continue;
-						}
-						var key = "enchantment.minecraft." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
-
-					mappings = "achievements";
-					var achievements = DataListLoader.loadDataList(mappings);
-					for (DataListEntry entry : achievements) {
-						var achievementEntry = StringUtils.getAchievementEntry(entry.getName());
-						register = achievementEntry.getValue();
-						if (register.replaceAll("\\s", "").length() != register.length()) {
-							continue;
-						}
-						var key = "advancements." + achievementEntry.getKey() + "." + register + ".title";
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
-
-					mappings = "attributes";
-					var attributes = DataListLoader.loadDataList(mappings);
-					for (DataListEntry entry : attributes) {
-						register = StringUtils.getCodeField(generatorWrapper.map(entry.getName(), mappings))
-								.toLowerCase();
-						var key = "attribute.name." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-							continue;
-						}
-						key = "attribute.name.generic." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-							continue;
-						}
-						key = "attribute.name.player." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						}
-					}
-
-					mappings = "gamemodes";
-					var gamemodes = DataListLoader.loadDataList(mappings);
-					for (DataListEntry entry : gamemodes) {
-						register = entry.getName().toLowerCase();
-						var key = "gameMode." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
-
-					mappings = "gamerules";
-					var gamerules = DataListLoader.loadDataList(mappings);
-					for (DataListEntry entry : gamerules) {
-						register = net.mcreator.util.StringUtils.snakeToCamel(entry.getName().toLowerCase());
-						var key = "gamerule." + net.mcreator.util.StringUtils.lowercaseFirstLetter(register);
-						if (languageFile.has(key)) {
-							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
-									entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
-
-					mappings = "potions";
-					var potions = DataListLoader.loadDataList(mappings);
-					for (DataListEntry entry : potions) {
-						var prefix = "";
-						register = entry.getName().toLowerCase();
-						if (register.replaceAll("\\s", "").length() != register.length()) {
-							continue;
-						}
-						if (register.startsWith("long") || register.startsWith("strong")) {
-							register = register.replaceFirst("long_|strong_", "");
-							prefix = entry.getName().toLowerCase().replace(register, "");
-						}
-						var key = "item.minecraft.potion.effect." + register;
-						if (languageFile.has(key)) {
-							entry.setReadableName(
-									StringUtils.getReadableName(prefix + languageFile.get(key).getAsString(),
-											entry.getReadableName()));
-						} else {
-							LOG.info("Missing {} key: {}", mappings, key);
-						}
-					}
+					L10N languageFile = new L10N();
+					languageFile.addSource(languageFileSource::containsKey,
+							key -> languageFileSource.containsKey(key) ? languageFileSource.get(key).getAsString() : null);
+					languageFile.setFallBack(key ->{
+						var value = net.mcreator.ui.init.L10N.t(key);
+						LOG.info("{} -> {}", key, value);
+						return value;
+					});
+					translate(a.getMCreator(), languageFile);
 
 					//					mappings = "villagerprofessions";
 					//					var villagerProfessions = DataListLoader.loadDataList(mappings);
@@ -226,7 +93,7 @@ public class PluginMain extends JavaPlugin {
 					//						register = entry.getName().toLowerCase();
 					//						var key = "entity.minecraft.villager." + register;
 					//						if (languageFile.has(key)) {
-					//							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key).getAsString(),
+					//							entry.setReadableName(StringUtils.getReadableName(languageFile.get(key),
 					//									entry.getReadableName()));
 					//						} else {
 					//							LOG.info("Missing {} key: {}", mappings, key);
@@ -248,7 +115,6 @@ public class PluginMain extends JavaPlugin {
 					//					}
 
 				} catch (Exception e) {
-					LOG.error("{}->{}", mappings, register);
 					throw new RuntimeException(e);
 				}
 				translated = true;
@@ -256,10 +122,11 @@ public class PluginMain extends JavaPlugin {
 		});
 	}
 
-	private JsonObject downloadAssets(String version) throws IOException {
+	private Map<String, JsonElement> downloadAssets(String version) throws IOException {
 		var locale = PreferencesManager.PREFERENCES.ui.language.get();
 		if (locale.getLanguage().equals("en")) {
-			var possibleLocale = Locale.of(System.getProperty("user.language","en"),System.getProperty("user.region",""));
+			var possibleLocale = Locale.of(System.getProperty("user.language", "en"),
+					System.getProperty("user.region", ""));
 			if (possibleLocale.getLanguage().equals("en")) {
 				LOG.info("ignored language");
 				return null;
@@ -270,17 +137,15 @@ public class PluginMain extends JavaPlugin {
 		String name = locale.getLanguage() + "_" + locale.getCountry().toLowerCase();
 		LOG.info(name);
 
-		var cache = new File(UserFolderManager.getFileFromUserFolder("cache"), version + "-" + name + ".json");
+		var cacheParent = UserFolderManager.getFileFromUserFolder("cache");
+		String suffix = version + "-" + name + ".json";
+		var cache = new File(cacheParent, suffix);
 		if (versionManifest != null) {
 			URL url;
 			cache.getParentFile().mkdirs();
 			try {
-				long ms = System.currentTimeMillis() - cache.lastModified();
-				LOG.info("{} : {}", cache.getName(), ms);
-				if (ms > 36000000L) {
-					if (cache.exists()) {
-						cache.delete();
-					}
+				// 确保语言文件存在
+				if (!cache.exists()) {
 					url = new URI(versionManifest.getSpecificVersion(version).getClient()
 							.getAssetDownloadURL("minecraft/lang/" + name + ".json")).toURL();
 					FileUtils.copyURLToFile(url, cache, 10_000, 5_000);
@@ -300,7 +165,14 @@ public class PluginMain extends JavaPlugin {
 		}
 
 		if (cache.exists()) {
-			return new Gson().fromJson(new FileReader(cache), JsonObject.class);
+			var gson = new Gson();
+			var map = new HashMap<>(gson.fromJson(new FileReader(cache), JsonObject.class).asMap());
+			for (File file : Objects.requireNonNull(cacheParent.listFiles())) {
+				if (!file.equals(cache) && file.isFile() && file.getName().endsWith(suffix)){
+					map.putAll(gson.fromJson(new FileReader(file),JsonObject.class).asMap());
+				}
+			}
+			return map;
 		} else {
 			LOG.info(cache);
 			return null;

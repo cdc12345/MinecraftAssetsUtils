@@ -1,4 +1,5 @@
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 
 plugins {
     id "java"
@@ -11,7 +12,7 @@ repositories {
 }
 
 group = 'org.cdc'
-version = new SimpleDateFormat("1.MM").format(new Date())
+version = new SimpleDateFormat("1.MM").format(LocalDate.now().toDate())
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
